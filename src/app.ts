@@ -8,9 +8,9 @@ import { createStream as rfsCreateStream } from 'rotating-file-stream';
 
 import {
 	mongoUrl,
-} from './constants/server';
+} from 'constants/server';
 
-import usersRouter from './routes/users'
+import usersRouter from 'routes/users'
 
 const connect = mongoose.connect(mongoUrl);
 connect.then((db) => {

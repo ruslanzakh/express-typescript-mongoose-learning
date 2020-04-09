@@ -4,7 +4,7 @@ import https from "https";
 import fs from "fs";
 
 import app from "./app";
-import { PORT } from "./constants/server";
+import { PORT } from "constants/server";
 
 const debug = Debug('confusionserver:server');
 

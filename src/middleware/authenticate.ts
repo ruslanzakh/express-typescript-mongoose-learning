@@ -5,9 +5,9 @@ import jwt from 'jsonwebtoken';
 import { Response, 	NextFunction } from 'express';
 
 
-import User, { IUser } from '../models/User';
-import { secretKey } from '../constants/server';
-import { RequestWithUser } from '../interfaces/express';
+import User, { IUser } from 'models/User';
+import { secretKey } from 'constants/server';
+import { RequestWithUser } from 'interfaces/express';
 
 
 passport.use(new localStrategy(User.authenticate()));
