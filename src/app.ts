@@ -10,7 +10,8 @@ import {
 	mongoUrl,
 } from 'constants/server';
 
-import usersRouter from 'routes/users'
+import usersRouter from 'routes/users/users';
+import tasksRouter from 'routes/tasks/tasks';
 
 const connect = mongoose.connect(mongoUrl);
 connect.then((db) => {
@@ -45,6 +46,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(passport.initialize());
 
 app.use('/users', usersRouter);
+app.use('/tasks', tasksRouter);
 
 app.use(express.static(path.join(__dirname, 'public')));
 

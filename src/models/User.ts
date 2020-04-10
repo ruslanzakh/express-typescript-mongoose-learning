@@ -4,6 +4,7 @@ import {
 	Schema,
 	PassportLocalModel,
 } from "mongoose";
+
 import passportLocalMongoose from 'passport-local-mongoose';
 
 const UserSchema: Schema = new Schema({
@@ -19,13 +20,15 @@ const UserSchema: Schema = new Schema({
 		type: Boolean,
 		default: false,
 	}
+}, {
+    timestamps: true,
 });
 
 UserSchema.plugin(passportLocalMongoose);
 
 interface IUserSchema extends Document {
-	firstName: string;
-	lastName: string;
+	firstname: string;
+	lastname: string;
 	admin: boolean;
 }
 
