@@ -24,7 +24,7 @@ taskRouter.route('/')
 				res.setHeader('Content-Type', 'application/json');
 				res.json({tasks});
 			}).catch((err) => next(err));
-	}).post(corsWithOptions, verifyUser, verifyAdmin, (req, res, next) => {
+	}).post(corsWithOptions, verifyUser, (req, res, next) => {
 		Task.create(req.body)
 			.then((task) => {
 				console.log('Task created', task);
