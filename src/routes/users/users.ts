@@ -29,36 +29,9 @@ userRouter.route('/')
 
 userRouter.route('/signup')
 	.post(corsWithOptions, (req, res, next) => {
-		User.register(new User({username: req.body.username}), req.body.password, (err, user: IUser) => {
-				if(err) {
-					sendResponse(res, {
-						status: 500,
-						msg: err,
-					});
-				} else {
-					if(req.body.firstname) {
-						user.firstname = req.body.firstname;
-					}
-					if(req.body.lastname) {
-						user.lastname = req.body.lastname;
-					}
-					user.save()
-						.then((user) => {
-							if(err) {
-								sendResponse(res, {
-									status: 500,
-									msg: err,
-								});
-							} else {
-								passport.authenticate('local')(req, res, () => {
-									sendResponse(res, {
-										msg: 'Registration Successful!',
-									});
-								});
-							}
-						}).catch((err) => next(err));
-				}
-		})
+		User.signUp(req.body)
+			.then((params) => sendResponse(res, params))
+			.catch((err) => next(err));
 	});
 
 

@@ -1,11 +1,13 @@
-import { 
-	Document,
+import {
 	model,
 	Schema,
 	PassportLocalModel,
+	PassportLocalDocument,
 } from "mongoose";
-
+import passport from 'passport';
 import passportLocalMongoose from 'passport-local-mongoose';
+
+import { ISendResponseParams } from 'utils/response';
 
 const UserSchema: Schema = new Schema({
 	firstname: {
@@ -26,12 +28,6 @@ const UserSchema: Schema = new Schema({
 
 UserSchema.plugin(passportLocalMongoose);
 
-interface IUserSchema extends Document {
-	firstname: string;
-	lastname: string;
-	admin: boolean;
-}
-
 // Virtuals - getters of model instance
 UserSchema.virtual("fullName").get(function(this: { firstName: string, lastName: string}) {
 	return this.firstName + " " + this.lastName ;
@@ -40,6 +36,51 @@ UserSchema.virtual("fullName").get(function(this: { firstName: string, lastName:
 // Methods of model instance
 UserSchema.methods.testMethod = function() {
 	return "Test method";
+}
+
+/**
+ * User Registration
+ * @param data {IUserToSave} Data to save user
+ */
+UserSchema.statics.signUp = async (data:IUserToSave ) => {
+	try {
+		let user = await User.register(new User({username: data.username}), data.password);
+		if(data.firstname) {
+			user.firstname = data.firstname;
+		}
+		if(data.lastname) {
+			user.lastname = data.lastname;
+		}
+	
+		user = await user.save();
+		await passport.authenticate('local');
+		return {
+			msg: 'Registration Successful!',
+		}
+	} catch(err) {
+		return {
+			status: 500,
+			msg: err.message ? err.message : err,
+		}
+	}
+
+
+}
+
+const User = model<IUser, IUserModel>('User', UserSchema);
+export default User;
+
+interface IUserToSave {
+	username: string;
+	password: string;
+	firstname?: string;
+	lastname?: string;
+}
+
+interface IUserSchema extends PassportLocalDocument {
+	firstname: string;
+	lastname: string;
+	admin: boolean;
 }
   
 // Basic interface of instance
@@ -51,18 +92,9 @@ interface IUserBase extends IUserSchema {
 // Extended interface of instance
 export interface IUser extends IUserBase {
 	// company: ICompany["_id"];
-} 
+}   
 
-// Static methods for model
-UserSchema.statics.findMyCompany = async function() {
-	return 'your company';
-}
-  
 // Interface for model
 export interface IUserModel extends PassportLocalModel<IUser> {
-	findMyCompany(): Promise<string>
+	signUp:  (data:IUserToSave ) => Promise<ISendResponseParams>; 
 }
-
-export default model<IUser, IUserModel>('User', UserSchema);
-
-// https://medium.com/@agentwhs/complete-guide-for-typescript-for-mongoose-for-node-js-8cc0a7e470c1
