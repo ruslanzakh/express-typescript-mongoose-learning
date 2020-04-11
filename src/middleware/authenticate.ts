@@ -7,6 +7,7 @@ import { Request, Response, NextFunction } from 'express';
 
 import User, { IUser } from 'models/User';
 import { secretKey } from 'constants/server';
+import { sendResponse } from 'utils/response';
 
 
 passport.use(new localStrategy(User.authenticate()));
@@ -24,22 +25,48 @@ passport.use(new jwtStrategy(opts, (jwt_payload, done) => {
 	console.log("JWT payload: ", jwt_payload);
 	User.findOne({_id: jwt_payload._id}, (err, user) => {
 		if(err) {
-			return done(new Error(err), false);
+			return done(err, false);
 		} else if(user) {
-			return done(null, user)
+			return done(null, user);
 		} else {
 			return done(null, false);
 		}
 	})
 }));
 
-export const verifyUser = passport.authenticate('jwt', {session: false});
+export const verifyUser = (req: Request, res: Response, next: NextFunction) => {
+	passport.authenticate('jwt', {session: false}, function(err, user, info) {
+		if(err) {
+			return sendResponse(res, {
+				status: 403,
+				msg: err,
+			})
+		}
+		if(info) {
+			return sendResponse(res, {
+				status: 403,
+				msg: info.message,
+			})
+		}
+		if(!user) {
+			return sendResponse(res, {
+				status: 403,
+				msg: 'User not found',
+			})
+		}
+		req.logIn(user, function(err) {
+			if (err) return next(err);
+			return next();
+		});
+	})(req, res, next);
+}; 
 
 export const verifyAdmin = (req: Request
 , res: Response, next: NextFunction) => {
 	if(!req.user || (req.user as IUser).admin === false) {
-		res.statusCode = 403;
-		const err = new Error('You are not authorized to perform ' + req.method + ' operation!');
-		next(err);
+		return sendResponse(res, {
+			status: 403,
+			msg: 'You are not authorized to perform this ' + req.method + ' operation!'
+		})
 	} else next();
 }
