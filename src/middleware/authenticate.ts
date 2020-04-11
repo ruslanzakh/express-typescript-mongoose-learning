@@ -14,7 +14,7 @@ passport.use(new localStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-export const getToken = (user: {_id: string}) => jwt.sign(user, secretKey, { expiresIn: 3600});
+export const getToken = (user: {_id: string}) => jwt.sign(user, secretKey, { expiresIn: "7d"});
 
 const opts = {
 	jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),

@@ -10,6 +10,7 @@ import {
 } from 'middleware/cors';
 
 import Task from 'models/Task';
+import { sendResponse } from 'utils/response';
 import { IUser } from 'models/User';
 
 const taskRouter = express.Router();
@@ -20,27 +21,21 @@ taskRouter.route('/')
 	.get(cors, (req, res, next) => {
 		Task.find({})
 			.then((tasks) => {
-				res.statusCode = 200;
-				res.setHeader('Content-Type', 'application/json');
-				res.json({tasks});
+				sendResponse(res, {data:{tasks}});
 			}).catch((err) => next(err));
 	}).post(corsWithOptions, verifyUser, (req, res, next) => {
+		if(!req.body.author) req.body.author = (req.user as IUser)._id;
 		Task.create(req.body)
 			.then((task) => {
 				console.log('Task created', task);
-				res.statusCode = 200;
-				res.setHeader('Content-Type', 'application/json');
-				res.json({tasks: [task]})
+				sendResponse(res, {data:{tasks: [task]}});
 			}).catch((err) => next(err));
 	}).put(corsWithOptions, verifyUser, (req, res, next) => {
-		res.statusCode = 403;
-		res.send('Put operation not supported on /tasks');
+		sendResponse(res, {status: 403, msg: 'Put operation not supported on /tasks'})
 	}).delete(corsWithOptions, verifyUser, verifyAdmin, (req, res, next) => {
 		Task.remove({})
 			.then((resp) => {
-				res.statusCode = 200;
-				res.setHeader('Content-Type', 'application/json');
-				res.json(resp);
+				sendResponse(res, {data: {tasks:[resp]}});
 			}).catch((err) => next(err));
 	});
 
@@ -50,24 +45,18 @@ taskRouter.route('/:taskId')
 	.get(cors, (req, res, next) => {
 		Task.findById(req.params.taskId)
 			.then((task) => {
-				res.statusCode = 200;
-				res.setHeader('Content-Type', 'application/json');
-				res.json({tasks: [task]});
+				if(task) return sendResponse(res, {data:{tasks: [task]}});
+				return sendResponse(res, {status: 404, msg: 'Task not found' });
 			}).catch((err) => next(err));
 	}).post(corsWithOptions, verifyUser, verifyAdmin, (req, res, next) => {
-		res.statusCode = 403;
-        res.send('POST operation not supported on /tasks/' + req.params.taskId);
+		sendResponse(res, {status: 403, msg: 'POST operation not supported on /tasks/' + req.params.taskId})
 	}).put(corsWithOptions, verifyUser, (req, res, next) => {
 		Task.findById(req.params.taskId)
 			.then((task) => {
 				if(task === null) {
-					const err = new Error('Task ' + req.params.taskId + ' not found');
-					res.statusCode = 404;
-					return next(err);
-				} else if(!task.author.equals((req.user as IUser)._id)) {
-					const err = new Error('You don\'t have access for edit task ' + req.params.taskId);
-					res.statusCode = 401;
-					return next(err);
+					return sendResponse(res, {status: 404, msg: 'Task not found' });
+				} else if(task.author && !task.author.equals((req.user as IUser)._id)) {
+					return sendResponse(res, {status: 401, msg: 'You don\'t have access for edit task ' + req.params.taskId });
 				} else {
 					if(req.body.title) task.title = req.body.title;
 					if(req.body.description) task.description = req.body.description;
@@ -77,9 +66,8 @@ taskRouter.route('/:taskId')
 							return Task.findById(req.params.taskId);
 						})
 						.then((task) => {
-							res.statusCode = 200;
-							res.setHeader('Content-Type', 'application/json');
-							res.json(task);
+							if(task) return sendResponse(res, {data:{tasks: [task]}});
+							else sendResponse(res)
 						}).catch((err) => next(err));
 				}
 			}).catch((err) => next(err));
@@ -87,19 +75,13 @@ taskRouter.route('/:taskId')
 		Task.findById(req.params.taskId)
 			.then((task) => {
 				if(task === null) {
-					const err = new Error('Task ' + req.params.taskId + ' not found');
-					res.statusCode = 404;
-					return next(err);
+					return sendResponse(res, {status: 404, msg: 'Task ' + req.params.taskId + ' not found' });
 				} else if(!task.author.equals((req.user as IUser)._id)) {
-					const err = new Error('You don\'t have access for edit task ' + req.params.taskId);
-					res.statusCode = 401;
-					return next(err);
+					return sendResponse(res, {status: 401, msg: 'You don\'t have access for edit task ' + req.params.taskId });
 				} else {
 					task.remove()
 						.then((task) => {
-							res.statusCode = 200;
-							res.setHeader('Content-Type', 'application/json');
-							res.json(task);
+							return sendResponse(res, {data:{tasks: [task]}});
 						}).catch((err) => next(err));
 				}
 			}).catch((err) => next(err));

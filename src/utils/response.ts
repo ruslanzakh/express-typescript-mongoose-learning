@@ -60,7 +60,7 @@ export const setResponseHeaders = (res: Response, params: ISetResponseHeadersPar
  * @param res 
  * @param params 
  */
-export const sendResponse = (res: Response, params: ISendResponseParams) => {
+export const sendResponse = (res: Response, params: ISendResponseParams = {}) => {
 
 	const  {
 		data = {},
@@ -86,7 +86,7 @@ export default {
 }
 
 
-type Status = 200 | 400 | 403 | 500;
+type Status = 200 | 400 | 401 | 403 | 404 | 500;
 
 interface IGetResponseParams {
 	data?: ObjectList<object[]>;
