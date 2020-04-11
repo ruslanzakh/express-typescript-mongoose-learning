@@ -51,40 +51,15 @@ taskRouter.route('/:taskId')
 	}).post(corsWithOptions, verifyUser, verifyAdmin, (req, res, next) => {
 		sendResponse(res, {status: 403, msg: 'POST operation not supported on /tasks/' + req.params.taskId})
 	}).put(corsWithOptions, verifyUser, (req, res, next) => {
-		Task.findById(req.params.taskId)
-			.then((task) => {
-				if(task === null) {
-					return sendResponse(res, {status: 404, msg: 'Task not found' });
-				} else if(task.author && !task.author.equals((req.user as IUser)._id)) {
-					return sendResponse(res, {status: 401, msg: 'You don\'t have access for edit task ' + req.params.taskId });
-				} else {
-					if(req.body.title) task.title = req.body.title;
-					if(req.body.description) task.description = req.body.description;
-					if(req.body.checked) task.checked = req.body.checked;
-					task.save()
-						.then((task) => {
-							return Task.findById(req.params.taskId);
-						})
-						.then((task) => {
-							if(task) return sendResponse(res, {data:{tasks: [task]}});
-							else sendResponse(res)
-						}).catch((err) => next(err));
-				}
-			}).catch((err) => next(err));
+		const userId = (req.user as IUser)._id;
+		Task.updateById(req.params.taskId, req.body, userId)
+			.then((params) => sendResponse(res, params))
+			.catch((err) => next(err));
 	}).delete(corsWithOptions, verifyUser, (req, res, next) => {
-		Task.findById(req.params.taskId)
-			.then((task) => {
-				if(task === null) {
-					return sendResponse(res, {status: 404, msg: 'Task ' + req.params.taskId + ' not found' });
-				} else if(!task.author.equals((req.user as IUser)._id)) {
-					return sendResponse(res, {status: 401, msg: 'You don\'t have access for edit task ' + req.params.taskId });
-				} else {
-					task.remove()
-						.then((task) => {
-							return sendResponse(res, {data:{tasks: [task]}});
-						}).catch((err) => next(err));
-				}
-			}).catch((err) => next(err));
+		const userId = (req.user as IUser)._id;
+		Task.deleteById(req.params.taskId, userId)
+			.then((params) => sendResponse(res, params))
+			.catch((err) => next(err));
 	});
 
 export default taskRouter;

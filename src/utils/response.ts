@@ -105,7 +105,7 @@ interface ISetResponseHeadersParams {
 	headers?: IHeaders
 }
 
-interface ISendResponseParams extends IGetResponseParams {
+export interface ISendResponseParams extends IGetResponseParams {
 	headers?: IHeaders
 }
 
