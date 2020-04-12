@@ -5,10 +5,12 @@ import mongoose from 'mongoose';
 import passport from 'passport';
 import morgan from 'morgan';
 import { createStream as rfsCreateStream } from 'rotating-file-stream';
+import swaggerUi from 'swagger-ui-express';
 
 import {
 	mongoUrl,
 } from 'constants/server';
+import swaggerDocument from 'swagger/swagger.json';
 
 import usersRouter from 'routes/users/users';
 import tasksRouter from 'routes/tasks/tasks';
@@ -49,6 +51,10 @@ app.use('/users', usersRouter);
 app.use('/tasks', tasksRouter);
 
 app.use(express.static(path.join(__dirname, 'public')));
+
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.use('/api/v1', tasksRouter);
 
 
 // catch 404 and forward to error handler
